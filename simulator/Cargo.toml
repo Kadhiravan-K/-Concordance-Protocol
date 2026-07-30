@@ -1,0 +1,14 @@
+[package]
+name = "concordance-simulator"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "concordance-simulate"
+path = "src/main.rs"
+
+[dependencies]
+concordance-core = { path = "../core" }
+ed25519-dalek.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/evidence.schema.json",
+  "title": "Concordance Evidence Bundle",
+  "type": "array",
+  "minItems": 1,
+  "items": {"$ref": "trust-envelope.schema.json"}
+}

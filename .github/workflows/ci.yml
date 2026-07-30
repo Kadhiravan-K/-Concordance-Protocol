@@ -1,0 +1,16 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace
+      - run: cargo run -p concordance-simulator
+      - run: cargo run -p concordance-simulator -- --agents 1000 --adversarial-percent 20
+      - run: cargo run -p concordance-benchmarks

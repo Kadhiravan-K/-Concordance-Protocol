@@ -1,0 +1,9 @@
+[package]
+name = "concordance-benchmarks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "concordance-integration-benchmark"
+path = "src/main.rs"

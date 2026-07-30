@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/revoke-echo.schema.json",
+  "title": "Concordance REVOKE_ECHO",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["concordance_version", "envelope_id", "sequence", "revoked_at_ms", "reason", "issuer", "issuer_key", "signature"],
+  "properties": {
+    "concordance_version": {"const": "Concordance/1.0"}, "envelope_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sequence": {"type": "integer", "minimum": 1}, "revoked_at_ms": {"type": "integer", "minimum": 0}, "reason": {"type": "string", "minLength": 1},
+    "issuer": {"type": "string", "minLength": 1}, "issuer_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+  }
+}

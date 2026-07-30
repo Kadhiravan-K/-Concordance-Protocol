@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/policy.schema.json",
+  "title": "Concordance Typed Interaction Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "required_claims", "max_envelope_age_ms", "escalation_floor", "conflict_delta"],
+  "properties": {
+    "version": {"type": "string", "minLength": 1},
+    "required_claims": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "object", "additionalProperties": false, "required": ["min_strength"], "properties": {"min_strength": {"type": "number", "minimum": 0, "maximum": 1}}}},
+    "max_envelope_age_ms": {"type": "integer", "minimum": 0},
+    "escalation_floor": {"type": "number", "minimum": 0, "maximum": 1},
+    "conflict_delta": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
+  }
+}

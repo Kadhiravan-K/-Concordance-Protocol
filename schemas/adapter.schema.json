@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/adapter.schema.json",
+  "title": "Concordance ADAPTER_ANNOUNCE",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scheme_uri", "normalization_fn_uri", "version", "publisher", "publisher_key", "fixture_uri", "signature"],
+  "properties": {
+    "scheme_uri": {"type": "string", "pattern": "^urn:"}, "normalization_fn_uri": {"type": "string", "pattern": "^urn:"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"}, "publisher": {"type": "string"},
+    "publisher_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "fixture_uri": {"type": "string"}, "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+  }
+}

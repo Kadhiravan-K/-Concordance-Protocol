@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/trust-envelope.schema.json",
+  "title": "Concordance Trust Object Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["concordance_version", "envelope_id", "scheme_uri", "claim_class", "polarity", "subject", "issuer", "issuer_key", "payload_commitment", "normalized_strength", "normalization_fn_uri", "issued_at_ms", "redacted", "binding_proof", "issuer_signature"],
+  "properties": {
+    "concordance_version": {"const": "Concordance/1.0"},
+    "envelope_id": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scheme_uri": {"type": "string", "pattern": "^urn:"},
+    "claim_class": {"type": "string", "minLength": 1},
+    "polarity": {"enum": ["SUPPORT", "CONTRADICT"]},
+    "subject": {"type": "string", "minLength": 1},
+    "issuer": {"type": "string", "minLength": 1},
+    "issuer_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "native_payload": {"type": ["array", "null"], "items": {"type": "integer", "minimum": 0, "maximum": 255}},
+    "payload_commitment": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "normalized_strength": {"type": "number", "minimum": 0, "maximum": 1},
+    "normalization_fn_uri": {"type": "string", "pattern": "^urn:"},
+    "issued_at_ms": {"type": "integer", "minimum": 0},
+    "expires_at_ms": {"type": ["integer", "null"], "minimum": 0},
+    "revocation_check_uri": {"type": ["string", "null"]},
+    "independence_class": {"type": ["string", "null"]},
+    "redacted": {"type": "boolean"},
+    "binding_proof": {"type": "object", "additionalProperties": false, "required": ["presenter_id", "session_id", "presenter_key", "signature"], "properties": {"presenter_id": {"type": "string"}, "session_id": {"type": "string"}, "presenter_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}}},
+    "issuer_signature": {"type": ["string", "null"], "pattern": "^[0-9a-f]{128}$"}
+  }
+}

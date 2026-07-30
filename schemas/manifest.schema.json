@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/manifest.schema.json",
+  "title": "Concordance Scheme Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["concordance_version", "agent_id", "agent_key", "can_present", "can_verify", "policy_classes", "signature"],
+  "properties": {
+    "concordance_version": {"const": "Concordance/1.0"}, "agent_id": {"type": "string", "minLength": 1}, "agent_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "signature": {"type": ["string", "null"], "pattern": "^[0-9a-f]{128}$"},
+    "can_present": {"type": "array", "items": {"$ref": "#/$defs/capability"}},
+    "can_verify": {"type": "array", "items": {"$ref": "#/$defs/capability"}},
+    "policy_classes": {"type": "object", "additionalProperties": {"$ref": "policy.schema.json"}}
+  },
+  "$defs": {"capability": {"type": "object", "additionalProperties": false, "required": ["scheme_uri", "claim_classes"], "properties": {"scheme_uri": {"type": "string", "pattern": "^urn:"}, "claim_classes": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true}}}}
+}

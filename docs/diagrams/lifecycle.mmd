@@ -1,0 +1,8 @@
+stateDiagram-v2
+  [*] --> ManifestKnown
+  ManifestKnown --> EvidencePresented: negotiate accepted
+  EvidencePresented --> Decided: compose + local policy
+  Decided --> Active: ALLOW with validity window
+  Active --> EvidencePresented: REVOKE_ECHO / recompute
+  Active --> [*]: expires
+  Decided --> [*]: DENY / ESCALATE / CONFLICT
