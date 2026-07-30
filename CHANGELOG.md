@@ -19,3 +19,10 @@
   scenarios plus repeatability tests.
 - Expanded the integration benchmark to include conformance-suite counts and
   documented the measurement matrix required to validate the central claim.
+
+## Unreleased — Phase 3 adapter pilots
+
+- Added signed adapter announcements and local conformance-fixture execution.
+- Added fixture-based ERC-8004 feedback and signed capability-grant adapters.
+- Explicitly deferred live-chain and third-party capability-protocol claims
+  until independently maintained validation is available.

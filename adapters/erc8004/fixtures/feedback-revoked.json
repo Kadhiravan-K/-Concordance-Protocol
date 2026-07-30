@@ -1,0 +1,9 @@
+{
+  "agent_id": 22,
+  "client_address": "0x1111111111111111111111111111111111111111",
+  "feedback_index": 2,
+  "value": 99,
+  "value_decimals": 0,
+  "tag1": "successRate",
+  "is_revoked": true
+}

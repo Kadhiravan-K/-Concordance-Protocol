@@ -47,6 +47,12 @@ in parallel.
 **Exit gate:** both real adapters pass conformance tests against independently
 maintained fixtures or integrations.
 
+**Implementation status:** signed adapter announcements, a fixture-conformance
+API, an ERC-8004 feedback normalizer, and a signed capability-grant normalizer
+are implemented. This phase remains open: the ERC-8004 path has not yet been
+validated against an independent deployment, and the capability grant is a
+Concordance fixture format rather than a third-party protocol integration.
+
 ## Phase 4 — Federated pilot and reference service
 
 Add the Axum reference service, HTTP transport shim, signed-record registry,

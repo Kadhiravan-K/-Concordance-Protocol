@@ -323,6 +323,60 @@ impl AdapterRegistry {
     }
 }
 
+/// Signed metadata for a locally trusted adapter. Remote fetching and execution
+/// are explicitly outside the MVP; a host selects publisher keys and versions.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdapterAnnouncement {
+    pub scheme_uri: String,
+    pub normalization_fn_uri: String,
+    pub version: String,
+    pub publisher: String,
+    pub publisher_key: String,
+    pub fixture_uri: String,
+    pub signature: String,
+}
+
+impl AdapterAnnouncement {
+    pub fn sign(
+        scheme_uri: String,
+        normalization_fn_uri: String,
+        version: String,
+        publisher: String,
+        fixture_uri: String,
+        key: &SigningKey,
+    ) -> Result<Self> {
+        let mut announcement = Self {
+            scheme_uri,
+            normalization_fn_uri,
+            version,
+            publisher,
+            publisher_key: hex::encode(key.verifying_key().to_bytes()),
+            fixture_uri,
+            signature: String::new(),
+        };
+        announcement.signature = hex::encode(key.sign(&announcement.preimage_bytes()?).to_bytes());
+        Ok(announcement)
+    }
+
+    pub fn verify(&self) -> Result<()> {
+        verifying_key(&self.publisher_key)?.verify(
+            &self.preimage_bytes()?,
+            &signature_from_hex(&self.signature)?,
+        ).map_err(|_| ConcordanceError::InvalidSignature)
+    }
+
+    fn preimage_bytes(&self) -> Result<Vec<u8>> {
+        Ok(serde_cbor::to_vec(&(
+            &self.scheme_uri,
+            &self.normalization_fn_uri,
+            &self.version,
+            &self.publisher,
+            &self.publisher_key,
+            &self.fixture_uri,
+        ))?)
+    }
+}
+
 pub struct SyntheticReputationAdapter;
 impl TrustAdapter for SyntheticReputationAdapter {
     fn scheme_uri(&self) -> &str { "urn:concordance:scheme:synthetic:reputation:v1" }
@@ -433,4 +487,5 @@ mod tests {
     #[test] fn correlated_evidence_is_not_double_counted() { let a = envelope("reputation", 0.6, Some("vendor-x")); let b = envelope("reputation", 0.7, Some("vendor-x")); assert_eq!(noisy_or_capped(&[&a, &b]), 0.7); }
     #[test] fn composition_and_revocation_recompute() { let rep = envelope("reputation", 0.82, None); let consent = envelope("consent", 1.0, None); let p = policy(); let mut state = RevocationState::default(); let before = compose(&[rep.clone(), consent.clone()], &p, 1_001, state.revoked_ids()).unwrap(); assert_eq!(decide(&before, &p), Decision::Allow); let echo = RevokeEcho::sign(&rep, 1, 1_010, "slashed".into(), &key(1)).unwrap(); state.apply(&echo, &rep).unwrap(); let after = compose(&[rep, consent], &p, 1_011, state.revoked_ids()).unwrap(); assert_eq!(decide(&after, &p), Decision::Escalate); }
     #[test] fn replayed_revocation_is_rejected() { let e = envelope("reputation", 0.8, None); let echo = RevokeEcho::sign(&e, 1, 2_000, "x".into(), &key(1)).unwrap(); let mut state = RevocationState::default(); state.apply(&echo, &e).unwrap(); assert!(matches!(state.apply(&echo, &e), Err(ConcordanceError::RevocationReplay))); }
+    #[test] fn adapter_announcements_are_signed_and_tamper_evident() { let mut announcement = AdapterAnnouncement::sign("urn:test:scheme".into(), "urn:test:adapter".into(), "1.0.0".into(), "did:test:publisher".into(), "fixtures://test".into(), &key(3)).unwrap(); announcement.verify().unwrap(); announcement.version = "2.0.0".into(); assert!(matches!(announcement.verify(), Err(ConcordanceError::InvalidSignature))); }
 }
