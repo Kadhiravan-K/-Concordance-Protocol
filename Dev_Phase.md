@@ -32,6 +32,11 @@ against bespoke pairwise integrations for 1, 2, 4, 8, and 16 schemes.
 **Exit gate:** publish the data and explicitly report whether the O(n) claim
 holds under measured adapter effort; a negative result is valid evidence.
 
+**Implementation status:** the deterministic simulator, CSV result contract,
+scenario matrix, and integration-count model are implemented. The exit gate is
+intentionally still open until measured adapter-effort data is collected and
+published.
+
 ## Phase 3 — Adapter SDK and real-adapter pilot
 
 Stabilize the adapter trait, announcement metadata, fixture contract, and

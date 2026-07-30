@@ -11,6 +11,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --workspace
-      - run: cargo run -p concordance-simulator
-      - run: cargo run -p concordance-simulator -- --agents 1000 --adversarial-percent 20
-      - run: cargo run -p concordance-benchmarks
+      - run: cargo run -p concordance-simulator -- --agents 10 --format csv
+      - run: cargo run -p concordance-simulator -- --agents 1000 --max-schemes 3 --adversarial-percent 20 --revoked-percent 10 --expired-percent 10 --conflict-percent 10 --format csv
+      - run: cargo run -p concordance-benchmarks -- --format csv

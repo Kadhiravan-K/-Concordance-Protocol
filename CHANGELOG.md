@@ -10,3 +10,12 @@
   tests, and GitHub Actions workflow.
 - Deferred external adapters, remote registry/service, and production
   infrastructure to their evidence-gated phases.
+
+## Unreleased — Phase 2 simulation harness
+
+- Replaced the illustrative network loop with a deterministic, configurable
+  10–1,000-agent simulator and CSV output contract.
+- Added adversarial correlation, expiry, revocation, conflict, and 1–3-scheme
+  scenarios plus repeatability tests.
+- Expanded the integration benchmark to include conformance-suite counts and
+  documented the measurement matrix required to validate the central claim.
