@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://concordance.dev/schemas/concordance/1.0/adapter-conformance-report.schema.json",
+  "title": "Concordance Adapter Conformance Report",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "scheme_uri",
+    "normalization_fn_uri",
+    "source_class",
+    "source_identifier",
+    "verification_policy",
+    "reproducibility_notes",
+    "coverage",
+    "results"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "adapter_id": {
+      "type": "string"
+    },
+    "scheme_uri": {
+      "type": "string",
+      "pattern": "^urn:"
+    },
+    "normalization_fn_uri": {
+      "type": "string",
+      "pattern": "^urn:"
+    },
+    "source_class": {
+      "type": "string",
+      "enum": ["repo_fixture", "external_fixture", "live_derived_fixture"]
+    },
+    "source_identifier": {
+      "type": "string"
+    },
+    "verification_policy": {
+      "type": "string"
+    },
+    "reproducibility_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["malformed", "revoked", "expired", "signature_tamper"],
+      "additionalProperties": false,
+      "properties": {
+        "malformed": { "type": "boolean" },
+        "revoked": { "type": "boolean" },
+        "expired": { "type": "boolean" },
+        "signature_tamper": { "type": "boolean" }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "passed", "actual_strength"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "passed": { "type": "boolean" },
+          "actual_strength": {
+            "type": ["number", "null"]
+          }
+        }
+      }
+    }
+  }
+}

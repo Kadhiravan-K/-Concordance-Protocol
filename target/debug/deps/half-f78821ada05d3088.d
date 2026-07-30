@@ -1,0 +1,12 @@
+D:\Projects\SAAS\AI\Concordance\target\debug\deps\half-f78821ada05d3088.d: C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\lib.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\slice.rs
+
+D:\Projects\SAAS\AI\Concordance\target\debug\deps\libhalf-f78821ada05d3088.rlib: C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\lib.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\slice.rs
+
+D:\Projects\SAAS\AI\Concordance\target\debug\deps\libhalf-f78821ada05d3088.rmeta: C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\lib.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16\convert.rs C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\slice.rs
+
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\lib.rs:
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat.rs:
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\bfloat\convert.rs:
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16.rs:
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\binary16\convert.rs:
+C:\Users\thewi\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\half-1.8.3\src\slice.rs:

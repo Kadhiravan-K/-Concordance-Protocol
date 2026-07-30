@@ -1,0 +1,1 @@
+D:\Projects\SAAS\AI\Concordance\target\debug\concordance-simulate.exe: D:\Projects\SAAS\AI\Concordance\core\src\lib.rs D:\Projects\SAAS\AI\Concordance\simulator\src\lib.rs D:\Projects\SAAS\AI\Concordance\simulator\src\main.rs
