@@ -26,3 +26,14 @@
 - Added fixture-based ERC-8004 feedback and signed capability-grant adapters.
 - Explicitly deferred live-chain and third-party capability-protocol claims
   until independently maintained validation is available.
+
+## Unreleased — Phase 3 pilot closure
+
+- Selected Anumati as the real consent target alongside ERC-8004 for the next
+  interoperability phase.
+- Added a pilot-harness crate boundary so source retrieval and canonicalization
+  stay outside `concordance-core` and `concordance-adapters`.
+- Added conformance-report metadata and schema validation so published reports
+  can back interoperability claims.
+- Added a Phase 2 publication artifact contract for measured adapter-effort
+  evidence before service work begins.

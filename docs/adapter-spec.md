@@ -21,6 +21,22 @@ those fixtures without network access. A production candidate also requires
 malformed, revoked, expired, and signature-tamper fixtures where the native
 scheme supports those states.
 
+## Conformance reports
+
+Phase-3 interoperability claims require a published conformance report in
+addition to passing local fixtures. A report must identify:
+
+- adapter identifier, scheme URI, and normalizer URI
+- source classification: `repo_fixture`, `external_fixture`, or
+  `live_derived_fixture`
+- the verification policy used by the pilot harness
+- reproducibility metadata, including the fixture or source identifier
+- the per-fixture outcome set
+- the coverage declaration for malformed, revoked, expired, and tamper cases
+
+The report format is machine-checkable through
+`schemas/adapter-conformance-report.schema.json`.
+
 The Phase-3 pilots are deliberately bounded:
 
 - `erc8004` parses active fixed-point feedback and applies a local tag/range
@@ -30,3 +46,6 @@ The Phase-3 pilots are deliberately bounded:
   fixture format with a local capability, time, and issuer-key policy. It is a
   testable capability adapter contract, not an implementation of OAuth, IBCT,
   Anumati, or another external standard.
+- `anumati` is the selected real consent target for Phase 3. Its adapter parses
+  an adherence-style proof payload, applies local policy checks, and relies on
+  the pilot harness for source retrieval and canonicalization.

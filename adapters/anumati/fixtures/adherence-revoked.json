@@ -1,0 +1,9 @@
+{
+  "version": "anumati-adherence/v1",
+  "subject": "did:example:agent",
+  "policy_hash": "policy:write-orders:v1",
+  "confidence": 0.88,
+  "issued_at_ms": 1000,
+  "expires_at_ms": 2000,
+  "is_revoked": true
+}

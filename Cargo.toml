@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core", "cli", "simulator", "benchmarks", "adapters"]
+members = ["core", "cli", "simulator", "benchmarks", "adapters", "pilot-harness"]
 
 [workspace.package]
 version = "0.1.0"

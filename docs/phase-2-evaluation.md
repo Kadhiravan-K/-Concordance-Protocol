@@ -24,3 +24,23 @@ The integration benchmark establishes implementation-count growth only. Phase
 2 is not complete until the model is replaced or supplemented by independently
 measured adapter LOC, engineering time, and conformance time for identical
 fixture contracts.
+
+## Publication artifact
+
+Phase 2 closes only when the repository publishes a measured-effort artifact at
+`docs/phase-2-results.md`. That artifact must use the same fixture contract on
+both sides of the comparison and record:
+
+- the adapter and bilateral-integration variants compared
+- the exact fixture set used for the comparison
+- measured implementation LOC for each variant
+- measured implementation effort for each variant
+- measured conformance effort for each variant
+- the command lines and local environment assumptions used to generate any
+  supporting synthetic CSV outputs
+- an explicit statement of whether the one-adapter-per-scheme claim held under
+  measured effort
+
+A negative result still closes the phase if the methodology and measurements
+are published clearly enough for an independent reviewer to reproduce the
+comparison.

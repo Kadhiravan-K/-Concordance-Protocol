@@ -45,13 +45,19 @@ consent/capability adapter. Do not add DID, VC, OAuth/OIDC, JWT, X.509, or IBCT
 in parallel.
 
 **Exit gate:** both real adapters pass conformance tests against independently
-maintained fixtures or integrations.
+maintained fixtures or integrations, published conformance reports exist for
+both paths, and the selected consent target is exercised through the pilot
+harness rather than a Concordance-owned placeholder fixture.
 
 **Implementation status:** signed adapter announcements, a fixture-conformance
 API, an ERC-8004 feedback normalizer, and a signed capability-grant normalizer
 are implemented. This phase remains open: the ERC-8004 path has not yet been
 validated against an independent deployment, and the capability grant is a
-Concordance fixture format rather than a third-party protocol integration.
+Concordance fixture format rather than a third-party protocol integration. The
+next build step is a pilot harness that keeps network and source-policy logic
+outside `concordance-core`, validates ERC-8004 against external evidence, and
+adds Anumati as the selected consent target. Phase 4 work stays deferred until
+that evidence exists.
 
 ## Phase 4 — Federated pilot and reference service
 

@@ -1,0 +1,12 @@
+[package]
+name = "concordance-pilot-harness"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+concordance-adapters = { path = "../adapters" }
+concordance-core = { path = "../core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
