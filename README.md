@@ -3,6 +3,17 @@
 Concordance is a research reference implementation for composing signed trust
 evidence across independently evolving agent ecosystems. It does not replace
 native trust schemes or prescribe a universal decision policy.
+# Core Doc & Research 
+## 1. CONCORDANCE 
+### A New Protocol Family for Cross-Ecosystem Trust Composition in Autonomous Agent Networks
+
+**Prepared:** July 29, 2026
+**Methodology:** `agent-protocol-research` (custom research skill, see accompanying methodology note)
+ [CONCORDANCE](docs/doc_core/concordance_research.md)
+ ![Concordance Image](docs/diagrams/Solving_AI_Agent_Trust_Crisis.png)
+ ![Concordance Image](docs/diagrams/comparision.png)
+ ![Concordance Image](docs/diagrams/outcome.png)
+ ![Concordance Image](docs/diagrams/flow.png)
 
 ## Status
 
