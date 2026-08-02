@@ -99,28 +99,27 @@ pub fn load_external_fixture_manifest(uri: &str) -> Result<ExternalFixtureManife
     let mut json: JsonValue = serde_json::from_slice(&raw)
         .map_err(|err| ExternalManifestError::InvalidManifest(err.to_string()))?;
 
-    // If signature/publisher_key present, verify signature over CBOR(preimage)
-    let signature_opt = json.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string());
-    let publisher_key_opt = json.get("publisher_key").and_then(|v| v.as_str()).map(|s| s.to_string());
+    // Require manifest authentication: `publisher_key`, `signature`, and `signature_alg` must be present.
+    let signature = json.get("signature").and_then(|v| v.as_str()).map(|s| s.to_string()).ok_or_else(|| ExternalManifestError::InvalidManifest("manifest missing signature".into()))?;
+    let publisher_key = json.get("publisher_key").and_then(|v| v.as_str()).map(|s| s.to_string()).ok_or_else(|| ExternalManifestError::InvalidManifest("manifest missing publisher_key".into()))?;
+    let signature_alg = json.get("signature_alg").and_then(|v| v.as_str()).map(|s| s.to_string()).ok_or_else(|| ExternalManifestError::InvalidManifest("manifest missing signature_alg".into()))?;
 
-    if let (Some(sig_hex), Some(pubkey_hex)) = (signature_opt, publisher_key_opt) {
-        // Remove signature field to compute preimage
-        let mut json_no_sig = json.clone();
-        json_no_sig.as_object_mut().map(|m| m.remove("signature"));
-        // Canonical CBOR preimage
-        let preimage = serde_cbor::to_vec(&json_no_sig).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
-        // Verify signature
-        let sig_bytes = hex::decode(&sig_hex).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
-        let sig: Signature = Signature::from_bytes(&sig_bytes).map_err(|_| ExternalManifestError::InvalidManifest("bad signature encoding".into()))?;
-        let pk_bytes = hex::decode(&pubkey_hex).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
-        let vk = VerifyingKey::from_bytes(&pk_bytes).map_err(|_| ExternalManifestError::InvalidManifest("bad publisher_key encoding".into()))?;
-        vk.verify(&preimage, &sig).map_err(|_| ExternalManifestError::InvalidManifest("manifest signature verification failed".into()))?;
-    } else {
-        // If operator requires signed manifests, enforce it via env var
-        if std::env::var("PILOT_HARNESS_REQUIRE_SIGNED_MANIFESTS").as_deref().unwrap_or("") == "1" {
-            return Err(ExternalManifestError::InvalidManifest("manifest missing required signature/publisher_key".into()));
-        }
+    // Only ed25519 supported for now
+    if signature_alg.to_lowercase() != "ed25519" {
+        return Err(ExternalManifestError::InvalidManifest(format!("unsupported signature_alg: {}", signature_alg)));
     }
+
+    // Remove signature field to compute preimage; keep publisher_key in preimage
+    let mut json_no_sig = json.clone();
+    json_no_sig.as_object_mut().map(|m| m.remove("signature"));
+    // Canonical CBOR preimage
+    let preimage = serde_cbor::to_vec(&json_no_sig).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
+    // Verify signature
+    let sig_bytes = hex::decode(&signature).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
+    let sig: Signature = Signature::from_bytes(&sig_bytes).map_err(|_| ExternalManifestError::InvalidManifest("bad signature encoding".into()))?;
+    let pk_bytes = hex::decode(&publisher_key).map_err(|e| ExternalManifestError::InvalidManifest(e.to_string()))?;
+    let vk = VerifyingKey::from_bytes(&pk_bytes).map_err(|_| ExternalManifestError::InvalidManifest("bad publisher_key encoding".into()))?;
+    vk.verify(&preimage, &sig).map_err(|_| ExternalManifestError::InvalidManifest("manifest signature verification failed".into()))?;
 
     let manifest: ExternalFixtureManifest = serde_json::from_value(json)
         .map_err(|err| ExternalManifestError::InvalidManifest(err.to_string()))?;
@@ -353,7 +352,61 @@ mod tests {
         std::env::set_var("PILOT_HARNESS_LOCAL_BASE_DIR", td.path().to_string_lossy().to_string());
 
         let uri = format!("file://{}", path.display());
-        let got = load_external_fixture_manifest(&uri).expect("manifest should verify");
+            // The signed manifest includes publisher_key and signature fields; loader requires they be present.
+            let got = load_external_fixture_manifest(&uri).expect("manifest should verify");
         assert_eq!(got.version, "concordance-external-fixture-manifest/v1");
     }
+
+        #[test]
+        fn unsigned_manifest_is_rejected() {
+            let manifest = json!({
+                "version": "concordance-external-fixture-manifest/v1",
+                "source_class": "ExternalFixture",
+                "source_identifier": "test",
+                "verification_policy": "none",
+                "reproducibility_notes": [],
+                "coverage": {"malformed": false, "revoked": false, "expired": false, "signature_tamper": false},
+                "fixtures": []
+            });
+            let td = TempDir::new().unwrap();
+            let path = td.path().join("manifest.json");
+            let mut f = File::create(&path).unwrap();
+            writeln!(f, "{}", serde_json::to_string(&manifest).unwrap()).unwrap();
+            std::env::set_var("PILOT_HARNESS_ALLOW_LOCAL", "1");
+            std::env::set_var("PILOT_HARNESS_LOCAL_BASE_DIR", td.path().to_string_lossy().to_string());
+            let uri = format!("file://{}", path.display());
+            let err = load_external_fixture_manifest(&uri).expect_err("unsigned manifest should be rejected");
+            match err {
+                ExternalManifestError::InvalidManifest(_) => {}
+                _ => panic!("expected InvalidManifest for unsigned manifest"),
+            }
+        }
+
+        #[test]
+        fn invalid_signature_is_rejected() {
+            let manifest = json!({
+                "version": "concordance-external-fixture-manifest/v1",
+                "source_class": "ExternalFixture",
+                "source_identifier": "test",
+                "verification_policy": "none",
+                "reproducibility_notes": [],
+                "coverage": {"malformed": false, "revoked": false, "expired": false, "signature_tamper": false},
+                "fixtures": [],
+                "publisher_key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "signature_alg": "ed25519",
+                "signature": "00"
+            });
+            let td = TempDir::new().unwrap();
+            let path = td.path().join("manifest.json");
+            let mut f = File::create(&path).unwrap();
+            writeln!(f, "{}", serde_json::to_string(&manifest).unwrap()).unwrap();
+            std::env::set_var("PILOT_HARNESS_ALLOW_LOCAL", "1");
+            std::env::set_var("PILOT_HARNESS_LOCAL_BASE_DIR", td.path().to_string_lossy().to_string());
+            let uri = format!("file://{}", path.display());
+            let err = load_external_fixture_manifest(&uri).expect_err("invalid signature should be rejected");
+            match err {
+                ExternalManifestError::InvalidManifest(_) => {}
+                _ => panic!("expected InvalidManifest for invalid signature"),
+            }
+        }
 }

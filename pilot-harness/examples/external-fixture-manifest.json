@@ -12,6 +12,9 @@
     "expired": false,
     "signature_tamper": false
   },
+  "publisher_key": "",
+  "signature_alg": "ed25519",
+  "signature": "",
   "fixtures": [
     {
       "name": "success-rate",
