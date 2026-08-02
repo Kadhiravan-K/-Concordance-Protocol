@@ -8,15 +8,19 @@
 //! - Revocation delivery via SSE with polling fallback
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet, VecDeque},
+    env,
+    net::SocketAddr,
     path::PathBuf,
     sync::Arc,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use axum::{
-    extract::{Path as AxumPath, Query, State},
-    http::{HeaderMap, StatusCode},
+    body::Body,
+    extract::{ConnectInfo, Extension, Path as AxumPath, Query, State},
+    http::{header, HeaderMap, HeaderName, HeaderValue, Request, Response, StatusCode},
+    middleware::{from_fn_with_state, Next},
     response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
     Router,
@@ -41,11 +45,217 @@ pub struct AppState {
     pub node_id: String,
     store: Arc<RegistryStore>,
     events_tx: broadcast::Sender<RegistryEvent>,
+    publish_auth_config: PublishAuthConfig,
+    rate_limit_config: RateLimitConfig,
+    rate_limit_store: Arc<RateLimitStore>,
 }
 
 impl AppState {
     pub fn store(&self) -> Arc<RegistryStore> {
         self.store.clone()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PublisherAuthorization {
+    pub allowed_subjects: HashSet<String>,
+    pub allowed_public_keys: HashSet<String>,
+}
+
+impl PublisherAuthorization {
+    pub fn authorizes_record(&self, record: &SignedRecord) -> bool {
+        match record {
+            SignedRecord::Manifest(manifest) => {
+                self.allowed_public_keys.contains(&manifest.agent_key)
+                    || self.allowed_subjects.contains(&manifest.agent_id)
+            }
+            SignedRecord::AdapterAnnounce(announcement) => {
+                self.allowed_public_keys.contains(&announcement.publisher_key)
+                    || self.allowed_subjects.contains(&announcement.publisher)
+            }
+            SignedRecord::RevokeEcho(echo) => {
+                self.allowed_public_keys.contains(&echo.issuer_key)
+                    || self.allowed_subjects.contains(&echo.issuer)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PublishAuthConfig {
+    pub api_key_header: String,
+    pub api_keys: HashMap<String, PublisherAuthorization>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct PublishKeyStoreEntry {
+    pub allowed_subjects: Option<HashSet<String>>,
+    pub allowed_public_keys: Option<HashSet<String>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct PublishKeyStore {
+    pub api_key_header: Option<String>,
+    pub api_keys: HashMap<String, PublishKeyStoreEntry>,
+}
+
+impl PublishAuthConfig {
+    pub fn from_env() -> Result<Self, String> {
+        let key_store_json = env::var("CONCORDANCE_REGISTRY_PUBLISH_KEYSTORE").ok();
+        let key_store_path = env::var("CONCORDANCE_REGISTRY_PUBLISH_KEYSTORE_PATH").ok();
+
+        let raw_store = if let Some(path) = key_store_path {
+            fs::read_to_string(&path)
+                .map_err(|e| format!("failed to read publish key store path {path}: {e}"))?
+        } else if let Some(json) = key_store_json {
+            json
+        } else {
+            return Err("publish authentication requires CONCORDANCE_REGISTRY_PUBLISH_KEYSTORE or CONCORDANCE_REGISTRY_PUBLISH_KEYSTORE_PATH".into());
+        };
+
+        let store: PublishKeyStore = serde_json::from_str(&raw_store)
+            .map_err(|e| format!("failed to parse publish key store: {e}"))?;
+
+        if store.api_keys.is_empty() {
+            return Err("publish key store contains no api_keys".into());
+        }
+
+        let api_key_header = store
+            .api_key_header
+            .unwrap_or_else(|| "X-Api-Key".to_string());
+
+        let api_keys = store
+            .api_keys
+            .into_iter()
+            .map(|(key, entry)| {
+                let allowed_subjects = entry.allowed_subjects.unwrap_or_default();
+                let allowed_public_keys = entry.allowed_public_keys.unwrap_or_default();
+                (
+                    key,
+                    PublisherAuthorization {
+                        allowed_subjects,
+                        allowed_public_keys,
+                    },
+                )
+            })
+            .collect();
+
+        Ok(Self {
+            api_key_header,
+            api_keys,
+        })
+    }
+
+    pub fn authenticate(&self, api_key: Option<&str>) -> Option<&PublisherAuthorization> {
+        api_key
+            .and_then(|value| if !value.is_empty() { Some(value) } else { None })
+            .and_then(|value| self.api_keys.get(value))
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RateLimitInfo {
+    pub per_ip_max_requests: usize,
+    pub per_ip_window_secs: u64,
+    pub per_key_max_requests: usize,
+    pub per_key_window_secs: u64,
+    pub api_key_header: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct RateLimitConfig {
+    pub per_ip_max_requests: usize,
+    pub per_ip_window_secs: u64,
+    pub per_key_max_requests: usize,
+    pub per_key_window_secs: u64,
+}
+
+#[derive(Debug)]
+pub struct RateLimitStore {
+    ip_buckets: tokio::sync::Mutex<HashMap<String, VecDeque<Instant>>>,
+    key_buckets: tokio::sync::Mutex<HashMap<String, VecDeque<Instant>>>,
+}
+
+impl RateLimitStore {
+    pub fn new() -> Self {
+        Self {
+            ip_buckets: tokio::sync::Mutex::new(HashMap::new()),
+            key_buckets: tokio::sync::Mutex::new(HashMap::new()),
+        }
+    }
+
+    async fn check_and_record(
+        &self,
+        bucket: &tokio::sync::Mutex<HashMap<String, VecDeque<Instant>>>,
+        identifier: &str,
+        max_requests: usize,
+        window: Duration,
+    ) -> Option<Duration> {
+        if max_requests == 0 {
+            return None;
+        }
+        let mut store = bucket.lock().await;
+        let deque = store.entry(identifier.to_string()).or_default();
+        let now = Instant::now();
+        let threshold = now - window;
+        while deque.front().map_or(false, |ts| *ts <= threshold) {
+            deque.pop_front();
+        }
+        if deque.len() >= max_requests {
+            if let Some(oldest) = deque.front() {
+                let retry_after = window.saturating_sub(now.saturating_duration_since(*oldest));
+                return Some(retry_after);
+            }
+            return Some(window);
+        }
+        deque.push_back(now);
+        None
+    }
+
+    pub async fn record_ip(&self, ip: &str, max_requests: usize, window: Duration) -> Option<Duration> {
+        self.check_and_record(&self.ip_buckets, ip, max_requests, window).await
+    }
+
+    pub async fn record_key(&self, key: &str, max_requests: usize, window: Duration) -> Option<Duration> {
+        self.check_and_record(&self.key_buckets, key, max_requests, window).await
+    }
+}
+
+impl RateLimitConfig {
+    pub fn from_env() -> Self {
+        let per_ip_max_requests = env::var("CONCORDANCE_REGISTRY_RATE_LIMIT_PER_IP_MAX")
+            .ok()
+            .and_then(|val| val.parse::<usize>().ok())
+            .unwrap_or(50);
+        let per_ip_window_secs = env::var("CONCORDANCE_REGISTRY_RATE_LIMIT_PER_IP_WINDOW_SECS")
+            .ok()
+            .and_then(|val| val.parse::<u64>().ok())
+            .unwrap_or(60);
+        let per_key_max_requests = env::var("CONCORDANCE_REGISTRY_RATE_LIMIT_PER_KEY_MAX")
+            .ok()
+            .and_then(|val| val.parse::<usize>().ok())
+            .unwrap_or(200);
+        let per_key_window_secs = env::var("CONCORDANCE_REGISTRY_RATE_LIMIT_PER_KEY_WINDOW_SECS")
+            .ok()
+            .and_then(|val| val.parse::<u64>().ok())
+            .unwrap_or(60);
+
+        Self {
+            per_ip_max_requests,
+            per_ip_window_secs,
+            per_key_max_requests,
+            per_key_window_secs,
+        }
+    }
+
+    pub fn info(&self, api_key_header: String) -> RateLimitInfo {
+        RateLimitInfo {
+            per_ip_max_requests: self.per_ip_max_requests,
+            per_ip_window_secs: self.per_ip_window_secs,
+            per_key_max_requests: self.per_key_max_requests,
+            per_key_window_secs: self.per_key_window_secs,
+            api_key_header,
+        }
     }
 }
 
@@ -85,12 +295,14 @@ pub struct MetricsResponse {
     pub manifest_count: usize,
     pub adapter_count: usize,
     pub revocation_count: usize,
+    pub rate_limit: RateLimitInfo,
 }
 
 pub fn router(state: AppState) -> Router {
+    let publish_middleware = from_fn_with_state(state.clone(), publish_rate_limit_middleware);
     Router::new()
         .route("/health", get(health))
-        .route("/v1/records", post(publish_record))
+        .route("/v1/records", post(publish_record).layer(publish_middleware))
         .route("/v1/manifests/:agent_id", get(get_manifest))
         .route("/v1/adapters", get(get_adapters))
         .route("/v1/revocations/:envelope_id", get(get_revocation))
@@ -113,10 +325,108 @@ async fn health(State(state): State<AppState>, headers: HeaderMap) -> axum::resp
     )
 }
 
+fn parse_header_name(name: &str) -> Option<HeaderName> {
+    HeaderName::from_bytes(name.as_bytes()).ok()
+}
+
+fn client_ip_from_request(connect_info: Option<ConnectInfo<SocketAddr>>, req: &Request<Body>) -> Option<String> {
+    if let Some(connect_info) = connect_info {
+        return Some(connect_info.0.ip().to_string());
+    }
+
+    req.headers()
+        .get("x-forwarded-for")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|raw| raw.split(',').next())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(String::from)
+}
+
+fn unauthorized_response(api_key_header: &str) -> Response {
+    let mut response = Response::new("missing or invalid API key".into());
+    *response.status_mut() = StatusCode::UNAUTHORIZED;
+    if let Ok(value) = HeaderValue::from_str(&format!("ApiKey realm=\"concordance\", header=\"{}\"", api_key_header)) {
+        response.headers_mut().insert(header::WWW_AUTHENTICATE, value);
+    }
+    response
+}
+
+fn too_many_requests_response(retry_after: Duration) -> Response {
+    let mut response = Response::new(format!("rate limit exceeded; retry after {}s", retry_after.as_secs()).into());
+    *response.status_mut() = StatusCode::TOO_MANY_REQUESTS;
+    if let Ok(value) = HeaderValue::from_str(&retry_after.as_secs().to_string()) {
+        response.headers_mut().insert(header::RETRY_AFTER, value);
+    }
+    response
+}
+
+async fn publish_rate_limit_middleware(
+    State(state): State<AppState>,
+    connect_info: ConnectInfo<SocketAddr>,
+    mut req: Request<Body>,
+    next: Next<Body>,
+) -> Response {
+    let api_key_header = &state.publish_auth_config.api_key_header;
+    let header_name = match parse_header_name(api_key_header) {
+        Some(name) => name,
+        None => return unauthorized_response(api_key_header),
+    };
+
+    let api_key = req
+        .headers()
+        .get(header_name)
+        .and_then(|value| value.to_str().ok());
+
+    let auth = match state.publish_auth_config.authenticate(api_key) {
+        Some(auth) => auth,
+        None => return unauthorized_response(api_key_header),
+    };
+
+    let rate_limit_key = api_key.unwrap_or_default();
+    let key_retry = state
+        .rate_limit_store
+        .record_key(
+            rate_limit_key,
+            state.rate_limit_config.per_key_max_requests,
+            Duration::from_secs(state.rate_limit_config.per_key_window_secs),
+        )
+        .await;
+
+    let ip_retry = if let Some(ip) = client_ip_from_request(Some(connect_info), &req) {
+        state
+            .rate_limit_store
+            .record_ip(
+                &ip,
+                state.rate_limit_config.per_ip_max_requests,
+                Duration::from_secs(state.rate_limit_config.per_ip_window_secs),
+            )
+            .await
+    } else {
+        None
+    };
+
+    let retry_after = match (ip_retry, key_retry) {
+        (Some(ip_retry), Some(key_retry)) => Some(ip_retry.max(key_retry)),
+        (Some(ip_retry), None) => Some(ip_retry),
+        (None, Some(key_retry)) => Some(key_retry),
+        _ => None,
+    };
+
+    if let Some(retry_after) = retry_after {
+        return too_many_requests_response(retry_after);
+    }
+
+    let auth = auth.clone();
+    req.extensions_mut().insert(auth);
+    next.run(req).await
+}
+
 async fn publish_record(
     State(state): State<AppState>,
     AnyBody(req): AnyBody<PublishRecordRequest>,
     headers: HeaderMap,
+    Extension(auth): Extension<PublisherAuthorization>,
 ) -> Result<axum::response::Response, (StatusCode, String)> {
     let cursor = state
         .store
@@ -200,6 +510,9 @@ async fn observability_metrics(
             manifest_count: metrics.manifest_count,
             adapter_count: metrics.adapter_count,
             revocation_count: metrics.revocation_count,
+            rate_limit: state
+                .rate_limit_config
+                .info(state.publish_auth_config.api_key_header.clone()),
         },
         Some(&headers),
     )
@@ -591,11 +904,34 @@ pub async fn spawn_peer_sync(
 }
 
 pub async fn build_state(node_id: String, data_dir: PathBuf) -> Result<AppState, String> {
+    let publish_auth_config = PublishAuthConfig::from_env()?;
+    let rate_limit_config = RateLimitConfig::from_env();
+    build_state_with_config(node_id, data_dir, publish_auth_config, rate_limit_config).await
+}
+
+pub async fn build_state_with_publish_config(
+    node_id: String,
+    data_dir: PathBuf,
+    publish_auth_config: PublishAuthConfig,
+) -> Result<AppState, String> {
+    let rate_limit_config = RateLimitConfig::from_env();
+    build_state_with_config(node_id, data_dir, publish_auth_config, rate_limit_config).await
+}
+
+pub async fn build_state_with_config(
+    node_id: String,
+    data_dir: PathBuf,
+    publish_auth_config: PublishAuthConfig,
+    rate_limit_config: RateLimitConfig,
+) -> Result<AppState, String> {
     let store = Arc::new(RegistryStore::open(data_dir).await?);
     let (events_tx, _events_rx) = broadcast::channel(1_024);
     Ok(AppState {
         node_id,
         store,
         events_tx,
+        publish_auth_config,
+        rate_limit_config,
+        rate_limit_store: Arc::new(RateLimitStore::new()),
     })
 }

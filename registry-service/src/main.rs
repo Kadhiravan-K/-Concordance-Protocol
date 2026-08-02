@@ -53,8 +53,12 @@ async fn main() -> Result<(), String> {
         .await
         .map_err(|e| format!("failed to bind {addr}: {e}"))?;
 
+    let server = axum::Server::from_tcp(listener)
+        .map_err(|e| format!("failed to create server: {e}"))?
+        .serve(app.into_make_service_with_connect_info::<SocketAddr>());
+
     info!(node_id = %state.node_id, listen = %addr, "registry node started");
-    axum::serve(listener, app)
+    server
         .await
         .map_err(|e| format!("server error: {e}"))?;
     Ok(())
