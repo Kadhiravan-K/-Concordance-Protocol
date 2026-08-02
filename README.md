@@ -1,71 +1,428 @@
-# Concordance
+# Concordance Protocol
 
-Concordance is a research reference implementation for composing signed trust
-evidence across independently evolving agent ecosystems. It does not replace
-native trust schemes or prescribe a universal decision policy.
-# Core Doc & Research 
-## 1. CONCORDANCE 
-### A New Protocol Family for Cross-Ecosystem Trust Composition in Autonomous Agent Networks
+> **A transport-independent trust interoperability protocol for heterogeneous AI agent ecosystems.**
 
-**Prepared:** July 29, 2026
-**Methodology:** `agent-protocol-research` (custom research skill, see accompanying methodology note)
- [CONCORDANCE](docs/doc_core/concordance_research.md)
- ![Concordance Image](docs/diagrams/Solving_AI_Agent_Trust_Crisis.png)
- ![Concordance Image](docs/diagrams/comparision.png)
- ![Concordance Image](docs/diagrams/outcome.png)
- ![Concordance Image](docs/diagrams/flow.png)
+Concordance is an open protocol that enables independent trust, reputation, identity, consent, and authorization systems to interoperate without replacing their native implementations.
 
-## Status
+Instead of creating another trust framework, Concordance provides a common language for exchanging, validating, composing, and explaining trust evidence across diverse ecosystems.
 
-The repository implements the deterministic, synthetic MVP: signed Trust
-Object Envelopes (TOEs), manifest negotiation, typed policies, synthetic
-reputation and consent adapters, correlation-aware composition, revocation,
-simulation, and an integration-cost benchmark. It is **not** a production trust
-authority.
+---
+# Vision
 
-The active build focus is to close the still-open evidence gates for Phase 2
-and Phase 3:
+Our goal is to establish Concordance as the **vendor-neutral interoperability protocol for trust**, enabling independent trust systems to communicate, compose, and reason together while preserving their own governance and implementation models.
 
-- Phase 2 already has the deterministic simulator, CSV result contract, and
-  integration-count benchmark, but still requires published measured
-  adapter-effort evidence before the phase can be considered closed.
-- Phase 3 already has signed adapter announcements, fixture-based conformance,
-  and ERC-8004 plus placeholder capability adapters, but still requires
-  external validation against independently maintained or live-derived fixtures.
-- Phase 4 work remains **non-production and evidence-gated**, but this repo now
-  includes an experimental federated registry node and HTTP transport shim to
-  support a multi-organization pilot once Phase 2/3 evidence is ready.
+> **"One protocol. Many trust systems. Zero bespoke integrations."**
+---
 
-## Quick start
+## Why Concordance?
 
-```powershell
-cargo test --workspace
-cargo run -p concordance-simulator -- --agents 1000 --max-schemes 3 --adversarial-percent 10 --format csv
-cargo run -p concordance-benchmarks -- --format csv
+Modern AI agents and distributed systems rely on many incompatible trust mechanisms:
+
+* Reputation systems
+* Identity systems
+* Consent frameworks
+* Capability models
+* Organization-specific policies
+* Digital credentials
+
+Each ecosystem defines its own trust model, making interoperability difficult and requiring expensive custom integrations.
+
+Concordance solves this by introducing a **Trust Orchestration Envelope (TOE)** and a deterministic protocol for trust negotiation, evidence exchange, composition, revocation, and policy evaluation.
+
+The protocol standardizes **how trust evidence is exchanged and evaluated**, not **how trust is originally created**.
+
+---
+
+# The Problem
+
+Today's trust ecosystem looks like this:
+
+```text
+ERC-8004      DID      JWT      OAuth      X.509
+      │          │         │          │          │
+      └──────────┴─────────┴──────────┴──────────┘
+
+             No Common Trust Language
 ```
 
-`concordance inspect <bundle.json>` prints a serialized evidence bundle.
+Every protocol speaks its own trust vocabulary.
 
-## Federated registry pilot (experimental)
+Each new integration requires custom engineering.
 
-The Phase 4 reference service is `concordance-registry` (Axum). It stores
-signed manifests, adapter announcements, and revocation echoes in an append-only
-event log, exposes an SSE revocation stream, and supports pull-based sync across
-registry nodes.
+---
 
-See [Phase 4 federated pilot](docs/phase-4-federated-pilot.md) for a two-node
-pilot walkthrough and failure-mode expectations.
+# The Concordance Solution
 
-## Roadmap pointers
+```text
+Existing Trust Schemes
+        │
+        ▼
+  Concordance Adapters
+        │
+        ▼
+Trust Orchestration Envelope (TOE)
+        │
+        ▼
+Negotiation
+        │
+        ▼
+Evidence Composition
+        │
+        ▼
+Policy Evaluation
+        │
+        ▼
+Deterministic Trust Decision
+```
 
-See [the protocol specification](docs/protocol-spec.md) and
-[the development roadmap](Dev_Phase.md) for normative rules and phase gates.
+Concordance acts as the interoperability layer—not a replacement—for existing trust ecosystems.
 
-- [Phase 2 evaluation contract](docs/phase-2-evaluation.md): required
-  synthetic scenario matrix plus the measured adapter-effort artifact needed to
-  close the benchmark phase.
-- [Phase 3 pilot plan](docs/phase-3-pilot.md): pilot harness boundary,
-  Anumati target selection, and the conformance evidence required before
-  interoperability can be claimed.
-- [Adapter contract](docs/adapter-spec.md): fixture, conformance-report, and
-  reproducibility rules for phase-3 adapters.
+---
+
+# Key Features
+
+* Transport-independent protocol
+* Deterministic trust composition
+* Trust negotiation between heterogeneous systems
+* Policy-driven decision engine
+* Trust Orchestration Envelope (TOE)
+* Signed evidence bundles
+* Cryptographic integrity verification
+* Trust explanation and decision trace
+* Revocation and trust recomposition
+* Adapter-based extensibility
+* Deterministic simulations
+* Certification and conformance framework
+* Research-first architecture
+
+---
+
+# Protocol Lifecycle
+
+```text
+Manifest Exchange
+        │
+        ▼
+Capability Negotiation
+        │
+        ▼
+Trust Evidence Presentation
+        │
+        ▼
+Evidence Validation
+        │
+        ▼
+Trust Composition
+        │
+        ▼
+Policy Evaluation
+        │
+        ▼
+Decision
+        │
+        ▼
+Revocation (Optional)
+        │
+        ▼
+Trust Recomposition
+```
+
+---
+
+# Architecture
+
+```text
+Applications
+        │
+        ▼
+Concordance Protocol
+────────────────────────────────
+
+Negotiation
+
+Composition
+
+Policy Engine
+
+Revocation
+
+Trust Explanation
+
+────────────────────────────────
+Adapters
+
+────────────────────────────────
+Trust Systems
+
+ERC-8004
+Anumati
+OAuth
+JWT
+DID
+X.509
+...
+```
+
+---
+
+# Repository Structure
+
+```text
+concordance-protocol/
+├── core/                # Core protocol engine
+├── adapters/            # Trust scheme adapters
+├── registry-service/    # Federated registry service
+├── pilot-harness/       # Integration & adapter testing
+├── simulator/           # Deterministic simulations
+├── certification/       # Conformance & certification
+├── benchmarks/          # Performance benchmarks
+├── cli/                 # Command-line tools
+├── http/                # HTTP transport layer
+├── sdk/                 # Python, JavaScript, Go, Java SDKs
+├── examples/            # Example applications
+├── schemas/             # Protocol JSON schemas
+├── docs/                # Specifications & architecture
+├── tests/               # Shared test fixtures
+├── .github/             # CI workflows & AI review agents
+├── Cargo.toml           # Rust workspace
+├── README.md
+├── Dev_Phase.md
+├── Tech-Stack.md
+└── LICENSE              # http://www.apache.org/licenses/LICENSE-2.0
+```
+
+---
+
+# Current Development Status
+
+| Component               | Status                |
+| ----------------------- | --------------------- |
+| Research                | ✅ Complete            |
+| Protocol Specification  | ✅ Stable Draft        |
+| Core Library            | 🚧 Active Development |
+| Deterministic Simulator | ✅ Available           |
+| Adapter SDK             | 🚧 In Progress        |
+| Registry Service        | 🚧 Experimental       |
+| Certification Suite     | 🚧 In Progress        |
+| Federated Pilot         | ⏳ Planned             |
+| Standardization         | ⏳ Future              |
+
+---
+
+# Protocol Goals
+
+Concordance is designed to provide:
+
+* Trust interoperability
+* Deterministic decisions
+* Explainable trust
+* Cryptographic integrity
+* Transport independence
+* Extensible adapters
+* Verifiable policy evaluation
+* Vendor-neutral architecture
+
+---
+
+# Ecosystem Position
+
+| Technology      | Primary Purpose                         |
+| --------------- | --------------------------------------- |
+| MCP             | Tool invocation                         |
+| A2A             | Agent communication                     |
+| ANP             | Agent networking                        |
+| ERC-8004        | Reputation                              |
+| Anumati         | Consent                                 |
+| DID             | Identity                                |
+| OAuth/OIDC      | Authentication & Authorization          |
+| X.509           | PKI Identity                            |
+| **Concordance** | **Cross-scheme Trust Interoperability** |
+
+---
+
+# Security Principles
+
+Concordance follows a security-first architecture.
+
+Core principles include:
+
+* Cryptographically signed trust evidence
+* Deterministic trust composition
+* Immutable evidence references
+* Explicit policy evaluation
+* Replay protection
+* Revocation propagation
+* Explainable trust decisions
+* Fail-closed validation
+* Adapter isolation
+* Auditability
+
+Concordance **does not replace** authentication, encryption, identity providers, or authorization systems. Instead, it interoperates with them through adapters and normalized trust evidence.
+
+---
+
+# Technology Stack
+
+* **Language:** Rust
+* **Wire Format:** CBOR
+* **Debug Format:** Canonical JSON
+* **Signatures:** Ed25519
+* **Hashing:** BLAKE3
+* **Async Runtime:** Tokio
+* **Reference Service:** Axum
+
+---
+
+# Roadmap
+
+## Phase 0
+
+Protocol Contract Closure
+
+* Protocol specification
+* Schemas
+* Golden vectors
+* Threat model
+
+---
+
+## Phase 1
+
+Deterministic Vertical Slice
+
+* Rust core
+* Policy engine
+* Two-agent simulation
+* Inspector CLI
+
+---
+
+## Phase 2
+
+Simulation & Benchmark
+
+* Large-scale deterministic simulation
+* Trust composition benchmarks
+* O(n) integration validation
+
+---
+
+## Phase 3
+
+Adapter SDK
+
+* Stable adapter API
+* Real protocol integrations
+* Conformance testing
+
+---
+
+## Phase 4
+
+Federated Reference Service
+
+* Registry
+* Discovery
+* Multi-organization pilot
+* Revocation distribution
+
+---
+
+## Phase 5
+
+Production Hardening
+
+* Security review
+* Fuzz testing
+* Independent implementations
+* Governance
+* Standardization
+
+---
+
+# Documentation
+
+* Research Paper
+* Protocol Specification
+* Architecture Guide
+* Development Roadmap
+* Security Model
+* Threat Model
+* Adapter SDK
+* API Documentation
+* Examples
+
+> *(Replace with documentation links.)*
+
+---
+
+# Quick Start
+
+```bash
+git clone https://github.com/Kadhiravan-K/Concordance-Protocol.git
+
+cd concordance-protocol
+
+cargo build
+
+cargo test
+```
+
+---
+
+# Examples
+
+Example projects will demonstrate:
+
+* Reputation adapters
+* Consent adapters
+* Policy evaluation
+* Trust negotiation
+* Registry interaction
+* Trust explanation
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+Please read:
+
+* Contribution Guide
+* Code of Conduct
+* Security Policy
+* Development Guide
+
+before opening issues or pull requests.
+
+---
+
+# Research
+
+Concordance originated as a research project exploring **trust interoperability for heterogeneous AI ecosystems**.
+
+The implementation serves as the reference implementation of the protocol.
+
+If you use Concordance in academic work, please cite the project once the citation information is published.
+
+---
+
+# License
+
+This project is licensed under **apache-2.0**.
+
+Commercial licensing options may be available separately.
+
+*(Update this section to match your final licensing strategy.)*
+
+---
+
+# Project Status
+
+Concordance is currently under active development.
+
+Protocol semantics are stabilizing while the reference implementation, adapter ecosystem, and certification framework continue to evolve.
+
+---
+
