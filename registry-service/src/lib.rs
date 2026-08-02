@@ -428,6 +428,10 @@ async fn publish_record(
     headers: HeaderMap,
     Extension(auth): Extension<PublisherAuthorization>,
 ) -> Result<axum::response::Response, (StatusCode, String)> {
+    if !auth.authorizes_record(&req.record) {
+        return Err((StatusCode::FORBIDDEN, "publisher is not authorized for this record".into()));
+    }
+
     let cursor = state
         .store
         .publish_local(&state.node_id, req.record.clone())

@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, time::Duration};
+use std::{collections::HashSet, net::SocketAddr, time::Duration};
 
 use concordance_core::{AdapterAnnouncement, Polarity, RevokeEcho, TrustObjectEnvelope};
 use concordance_http::{PublishRecordRequest, SignedRecord};
@@ -14,7 +14,15 @@ fn key(byte: u8) -> SigningKey {
 fn default_publish_auth_config() -> concordance_registry_service::PublishAuthConfig {
     concordance_registry_service::PublishAuthConfig {
         api_key_header: "X-Api-Key".to_string(),
-        allowed_api_keys: vec![TEST_API_KEY.to_string()].into_iter().collect(),
+        api_keys: vec![(
+            TEST_API_KEY.to_string(),
+            concordance_registry_service::PublisherAuthorization {
+                allowed_subjects: vec!["did:example:publisher".to_string()].into_iter().collect(),
+                allowed_public_keys: HashSet::new(),
+            },
+        )]
+        .into_iter()
+        .collect(),
     }
 }
 
