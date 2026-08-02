@@ -9,3 +9,34 @@ result to `ALLOW`, `DENY`, `ESCALATE`, or `CONFLICT`.
 
 `RevokeEcho::sign` creates an issuer-authorized event and
 `RevocationState::apply` validates ordering and invalidates the referenced TOE.
+
+## CLI Reference
+
+The `concordance` command-line tool supports the following commands:
+
+- `inspect <bundle.json>` — print each envelope summary.
+- `verify <bundle.json>` — validate signatures and binding proofs.
+- `summary <bundle.json>` — report totals and counts by claim class and issuer.
+- `interactive <bundle.json>` — open a prompt to inspect individual envelopes.
+
+## Registry observability
+
+The reference registry service exposes observability endpoints for Phase 7:
+
+- `GET /v1/observability/metrics` — returns service metrics and registry counts.
+- `GET /v1/observability/audit-log` — returns durable audit events; filter by `kind`.
+- `GET /v1/observability/decision-history` — alias for filtered audit log, supporting trust decision reconstruction.
+
+## SDK Examples
+
+A minimal Python SDK is available in `sdk/python`. It exposes bindings for
+creating and verifying Concordance envelopes from Python.
+
+A standalone Rust sample application is provided in `examples/standalone`.
+Use `cargo run --manifest-path examples/standalone/Cargo.toml` to build and run it.
+
+For local CLI development, use `cargo run -p concordance-cli -- <command> <bundle.json>`.
+
+## Certification Suite
+
+A certification harness is available in `certification`. It validates published adapter conformance reports against the Concordance report schema and minimum coverage requirements.

@@ -1,0 +1,18 @@
+[package]
+name = "concordance-python"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Concordance contributors"]
+
+[lib]
+name = "concordance_python"
+crate-type = ["cdylib"]
+
+[dependencies]
+concordance-core = { path = "../../core" }
+pyo3 = { workspace = true, features = ["extension-module", "auto-initialize"] }
+serde = { workspace = true, features = ["derive"] }
+serde_cbor = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

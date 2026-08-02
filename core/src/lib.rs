@@ -458,6 +458,15 @@ impl RevokeEcho {
         Ok(echo)
     }
     fn preimage_bytes(&self) -> Result<Vec<u8>> { Ok(serde_cbor::to_vec(&( &self.concordance_version, &self.envelope_id, self.sequence, self.revoked_at_ms, &self.reason, &self.issuer, &self.issuer_key ))?) }
+    /// Verify only the signature integrity of this revocation echo.
+    ///
+    /// Authorization (that the issuer matches the referenced TOE) requires the
+    /// original TOE and is enforced by `verify_for` / `RevocationState::apply`.
+    pub fn verify_signature(&self) -> Result<()> {
+        verifying_key(&self.issuer_key)?
+            .verify(&self.preimage_bytes()?, &signature_from_hex(&self.signature)?)
+            .map_err(|_| ConcordanceError::InvalidSignature)
+    }
     pub fn verify_for(&self, envelope: &TrustObjectEnvelope) -> Result<()> {
         if self.issuer != envelope.issuer || self.issuer_key != envelope.issuer_key { return Err(ConcordanceError::UnauthorizedRevocation); }
         verifying_key(&self.issuer_key)?.verify(&self.preimage_bytes()?, &signature_from_hex(&self.signature)?).map_err(|_| ConcordanceError::InvalidSignature)

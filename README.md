@@ -32,8 +32,9 @@ and Phase 3:
 - Phase 3 already has signed adapter announcements, fixture-based conformance,
   and ERC-8004 plus placeholder capability adapters, but still requires
   external validation against independently maintained or live-derived fixtures.
-- Phase 4 service and federation work remains deferred until those two evidence
-  gates are met.
+- Phase 4 work remains **non-production and evidence-gated**, but this repo now
+  includes an experimental federated registry node and HTTP transport shim to
+  support a multi-organization pilot once Phase 2/3 evidence is ready.
 
 ## Quick start
 
@@ -44,6 +45,16 @@ cargo run -p concordance-benchmarks -- --format csv
 ```
 
 `concordance inspect <bundle.json>` prints a serialized evidence bundle.
+
+## Federated registry pilot (experimental)
+
+The Phase 4 reference service is `concordance-registry` (Axum). It stores
+signed manifests, adapter announcements, and revocation echoes in an append-only
+event log, exposes an SSE revocation stream, and supports pull-based sync across
+registry nodes.
+
+See [Phase 4 federated pilot](docs/phase-4-federated-pilot.md) for a two-node
+pilot walkthrough and failure-mode expectations.
 
 ## Roadmap pointers
 
