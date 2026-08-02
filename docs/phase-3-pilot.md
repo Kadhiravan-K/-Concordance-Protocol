@@ -21,7 +21,10 @@ multiple external protocols in parallel.
 The core never makes external calls. A dedicated `pilot-harness` crate owns
 RPC or HTTP access, source authentication, canonical payload generation,
 caching, finality policy, and any native revocation or policy-change watching.
-The adapters remain pure normalizers over already-obtained native payloads.
+The harness now supports external fixture manifests and local file/HTTP
+retrieval of canonical payloads, while the adapters remain pure normalizers
+over already-obtained native evidence. A canonical external manifest format
+is available in `pilot-harness/examples/external-fixture-manifest.json`.
 
 ## Pilot evidence still required
 

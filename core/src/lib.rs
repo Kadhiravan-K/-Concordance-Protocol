@@ -12,6 +12,23 @@ use thiserror::Error;
 
 pub const PROTOCOL_VERSION: &str = "Concordance/1.0";
 
+// Support modules (lightweight scaffolding added to implement Phase-9
+// recommendations: identity, authorization, security, explanation,
+// protocol recorder, and plugin registry.)
+mod identity;
+mod authorization;
+mod security;
+mod explain;
+mod recorder;
+mod plugins;
+
+pub use identity::IdentityVerifier;
+pub use authorization::AuthorizationEngine;
+pub use security::SecurityServices;
+pub use explain::Explanation;
+pub use recorder::ProtocolRecorder;
+pub use plugins::PluginRegistry;
+
 #[derive(Debug, Error)]
 pub enum ConcordanceError {
     #[error("serialization failed: {0}")]

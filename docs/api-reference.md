@@ -40,3 +40,15 @@ For local CLI development, use `cargo run -p concordance-cli -- <command> <bundl
 ## Certification Suite
 
 A certification harness is available in `certification`. It validates published adapter conformance reports against the Concordance report schema and minimum coverage requirements.
+
+## Governance
+
+The Phase 9 governance landing page is available at `docs/phase-9-governance.md`. It describes version policy, RFC process, deprecation rules, adapter approval, registry governance, security disclosure, and release cadence.
+
+## Ecosystem Expansion
+
+The Phase 10 ecosystem expansion landing page is available at `docs/phase-10-ecosystem-expansion.md`. It describes MCP/A2A/ANP integration paths, enterprise examples, industry profiles, and academic collaboration goals.
+
+## Advanced Trust Research
+
+The Phase 11 research landing page is available at `docs/phase-11-advanced-trust-research.md`. It describes advanced experiments in adaptive trust weighting, context-aware policies, privacy-preserving composition, zero-knowledge proofs, post-quantum cryptography, federated analytics, and AI-assisted policy tooling.

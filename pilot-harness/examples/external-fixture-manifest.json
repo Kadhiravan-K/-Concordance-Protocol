@@ -1,0 +1,24 @@
+{
+  "version": "concordance-external-fixture-manifest/v1",
+  "source_class": "external_fixture",
+  "source_identifier": "https://example.com/erc8004-fixtures",
+  "verification_policy": "fetch canonical payloads from a trusted published fixture set",
+  "reproducibility_notes": [
+    "external fixture manifest local copy"
+  ],
+  "coverage": {
+    "malformed": true,
+    "revoked": true,
+    "expired": false,
+    "signature_tamper": false
+  },
+  "fixtures": [
+    {
+      "name": "success-rate",
+      "payload_base64": "eyJhZ2VudF9pZCI6MjM0NTYsImNsaWVudF9hZGRyZXNzIjoiZGlkOmV4YW1wbGU6YWN0b3IiLCJmZWVkYmFja19pbmRleCI6MSwidmFsdWUiOjg3LCJ2YWx1ZV9kZWNpbWFscyI6MSwidGFnMSI6InN1Y2Nlc3NSYXRlIiwiaXNfcmV2b2tlZCI6ZmFsc2V9",
+      "expectation": {
+        "strength": 0.87
+      }
+    }
+  ]
+}

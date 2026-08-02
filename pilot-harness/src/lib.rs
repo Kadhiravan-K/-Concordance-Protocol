@@ -6,12 +6,15 @@
 
 pub mod anumati;
 pub mod erc8004;
+pub mod external;
 
 use concordance_adapters::{
     generate_conformance_report, AdapterFixture, ConformanceCoverage, ConformanceReport,
     FixtureExpectation, FixtureSourceClass,
 };
 use thiserror::Error;
+
+pub use external::{load_external_fixture_manifest, report_from_external_manifest_uri};
 
 #[derive(Debug, Error)]
 pub enum HarnessError {
@@ -252,5 +255,57 @@ mod tests {
             assert!(res_obj["passed"].is_boolean());
             assert!(res_obj["actual_strength"].is_number() || res_obj["actual_strength"].is_null());
         }
+    }
+
+    #[test]
+    fn external_manifest_report_can_be_loaded_from_local_file() {
+        use std::fs::{self, File};
+        use std::io::Write;
+        use std::path::PathBuf;
+        use concordance_adapters::Erc8004ReputationAdapter;
+
+        let tmp_dir = std::env::temp_dir().join("concordance-pilot-harness-external");
+        let _ = fs::remove_dir_all(&tmp_dir);
+        fs::create_dir_all(&tmp_dir).unwrap();
+
+        let fixture_payload = include_bytes!("../../adapters/erc8004/fixtures/feedback-success-rate.json");
+        let payload_base64 = base64::encode(fixture_payload);
+        let manifest = serde_json::json!({
+            "version": "concordance-external-fixture-manifest/v1",
+            "source_class": "external_fixture",
+            "source_identifier": "https://example.com/erc8004-fixtures",
+            "verification_policy": "fetch canonical payloads from a trusted published fixture set",
+            "reproducibility_notes": ["external fixture manifest local copy"],
+            "coverage": {
+                "malformed": true,
+                "revoked": true,
+                "expired": false,
+                "signature_tamper": false
+            },
+            "fixtures": [
+                {
+                    "name": "success-rate",
+                    "payload_base64": payload_base64,
+                    "expectation": { "strength": 0.87 }
+                }
+            ]
+        });
+
+        let manifest_path = tmp_dir.join("manifest.json");
+        let mut file = File::create(&manifest_path).unwrap();
+        file.write_all(manifest.to_string().as_bytes()).unwrap();
+        file.flush().unwrap();
+
+        let adapter = Erc8004ReputationAdapter::quality_0_to_100();
+        let report = report_from_external_manifest_uri(
+            "erc8004-external-manifest",
+            &adapter,
+            manifest_path.to_str().unwrap(),
+        ).expect("external manifest report generation should succeed");
+
+        assert_eq!(report.source_class, FixtureSourceClass::ExternalFixture);
+        assert_eq!(report.results.len(), 1);
+        assert!(report.results[0].passed);
+        validate_report_structure(&report);
     }
 }
