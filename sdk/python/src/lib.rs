@@ -2,6 +2,14 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use concordance_core::{ConcordanceError, Polarity, TrustObjectEnvelope};
+use ed25519_dalek::SigningKey;
+
+fn signing_key_from_bytes(bytes: Vec<u8>, label: &str) -> PyResult<SigningKey> {
+    let arr: [u8; 32] = bytes.try_into().map_err(|_| {
+        PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("invalid {label} key: expected 32 bytes"))
+    })?;
+    Ok(SigningKey::from_bytes(&arr))
+}
 
 #[pyclass]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -144,6 +152,23 @@ impl TryFrom<PyTrustObjectEnvelope> for TrustObjectEnvelope {
 }
 
 #[pyfunction]
+#[pyo3(signature = (
+    scheme_uri,
+    claim_class,
+    polarity,
+    subject,
+    issuer,
+    native_payload,
+    normalized_strength,
+    normalization_fn_uri,
+    issued_at_ms,
+    expires_at_ms,
+    revocation_check_uri,
+    independence_class,
+    issuer_key_bytes,
+    presenter_key_bytes,
+    session_id,
+))]
 pub fn sign_envelope(
     scheme_uri: String,
     claim_class: String,
@@ -166,10 +191,8 @@ pub fn sign_envelope(
         "Contradict" => Polarity::Contradict,
         _ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("invalid polarity")),
     };
-    let issuer_key = ed25519_dalek::SigningKey::from_bytes(&issuer_key_bytes)
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("invalid issuer key"))?;
-    let presenter_key = ed25519_dalek::SigningKey::from_bytes(&presenter_key_bytes)
-        .map_err(|_| PyErr::new::<pyo3::exceptions::PyValueError, _>("invalid presenter key"))?;
+    let issuer_key = signing_key_from_bytes(issuer_key_bytes, "issuer")?;
+    let presenter_key = signing_key_from_bytes(presenter_key_bytes, "presenter")?;
 
     let env = TrustObjectEnvelope::sign(
         scheme_uri,
@@ -196,7 +219,9 @@ pub fn sign_envelope(
 pub fn verify_envelope(envelope: PyTrustObjectEnvelope) -> PyResult<bool> {
     let env: TrustObjectEnvelope = envelope
         .try_into()
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        .map_err(|e: ConcordanceError| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string())
+        })?;
     Ok(env.verify().is_ok())
 }
 

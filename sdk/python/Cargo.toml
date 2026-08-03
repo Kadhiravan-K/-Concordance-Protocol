@@ -11,6 +11,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 concordance-core = { path = "../../core" }
+ed25519-dalek.workspace = true
 pyo3 = { workspace = true, features = ["extension-module", "auto-initialize"] }
 serde = { workspace = true, features = ["derive"] }
 serde_cbor = { workspace = true }
