@@ -217,7 +217,7 @@ pub fn accept_header(headers: &HeaderMap) -> Option<String> {
 mod tests {
     use super::*;
     use axum::{body::to_bytes, http::HeaderValue};
-    use http::HeaderMap;
+    use axum::http::HeaderMap;
 
     #[tokio::test]
     fn detect_cbor_content_type() {
@@ -254,7 +254,7 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.headers().get(header::CONTENT_TYPE).unwrap(), "application/json");
         let body = resp.into_body();
-        let bytes = to_bytes(body).await.unwrap();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
         assert_eq!(bytes, serde_json::to_vec(&"hello").unwrap());
     }
 
@@ -269,7 +269,7 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.headers().get(header::CONTENT_TYPE).unwrap(), "application/concordance+cbor");
         let body = resp.into_body();
-        let bytes = to_bytes(body).await.unwrap();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
         assert_eq!(bytes, serde_cbor::to_vec(&"hello").unwrap());
     
         let mut headers = HeaderMap::new();
@@ -281,7 +281,7 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.headers().get(header::CONTENT_TYPE).unwrap(), "application/concordance+cbor");
         let body = resp.into_body();
-        let bytes = hyper::body::to_bytes(body).await.unwrap();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
         assert_eq!(bytes, serde_cbor::to_vec(&"hello").unwrap());
     }
 }
