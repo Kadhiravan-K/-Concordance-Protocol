@@ -7,7 +7,7 @@ Concordance is an open protocol that enables independent trust, reputation, iden
 Instead of creating another trust framework, Concordance provides a common language for exchanging, validating, composing, and explaining trust evidence across diverse ecosystems.
 
 ---
-# Vision
+# Vision of the Project.
 
 Our goal is to establish Concordance as the **vendor-neutral interoperability protocol for trust**, enabling independent trust systems to communicate, compose, and reason together while preserving their own governance and implementation models.
 
@@ -46,8 +46,9 @@ ERC-8004      DID      JWT      OAuth      X.509
 ```
 
 Every protocol speaks its own trust vocabulary.
-
+![OUTCOME](docs/diagrams/Solving_AI_Agent_Trust_Crisis.png)
 Each new integration requires custom engineering.
+![OUTCOME](docs/diagrams/outcome.png)
 
 ---
 
@@ -126,7 +127,7 @@ Revocation (Optional)
         ▼
 Trust Recomposition
 ```
-
+![OUTCOME](docs/diagrams/flow.png)
 ---
 
 # Architecture
@@ -237,7 +238,7 @@ Concordance is designed to provide:
 | OAuth/OIDC      | Authentication & Authorization          |
 | X.509           | PKI Identity                            |
 | **Concordance** | **Cross-scheme Trust Interoperability** |
-
+![OUTCOME](docs/diagrams/comparision.png)
 ---
 
 # Security Principles
@@ -400,7 +401,9 @@ before opening issues or pull requests.
 
 # Research
 
-Concordance originated as a research project exploring **trust interoperability for heterogeneous AI ecosystems**.
+Concordance originated as a research project exploring [**trust interoperability for heterogeneous AI ecosystems**](docs/doc_core/concordance_research.md).
+
+Do you need further research clone this [notebook llm page](https://notebook.google.com/notebook/4b5c3acf-c4e0-464e-9fdf-dbc1f4d54957)
 
 The implementation serves as the reference implementation of the protocol.
 
@@ -410,17 +413,16 @@ If you use Concordance in academic work, please cite the project once the citati
 
 # License
 
-This project is licensed under **apache-2.0**.
+This project is licensed under [**apache-2.0**](LICENSE).
 
 Commercial licensing options may be available separately.
 
-*(Update this section to match your final licensing strategy.)*
 
 ---
 
 # Project Status
 
-Concordance is currently under active development.
+Concordance is currently under 🚨 active development 🚨.
 
 Protocol semantics are stabilizing while the reference implementation, adapter ecosystem, and certification framework continue to evolve.
 
