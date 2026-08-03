@@ -220,7 +220,7 @@ mod tests {
     use axum::http::HeaderMap;
 
     #[tokio::test]
-    fn detect_cbor_content_type() {
+    async fn detect_cbor_content_type() {
         assert!(is_cbor_content_type("application/cbor"));
         assert!(is_cbor_content_type("application/concordance+cbor"));
         assert!(!is_cbor_content_type("application/json"));
