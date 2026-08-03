@@ -112,20 +112,29 @@ where
     T: Serialize,
 {
     let content_type = preferred_response_content_type(headers);
-    let body = match content_type {
-        CONTENT_TYPE_CONCORDANCE_CBOR => serde_cbor::to_vec(&value),
-        _ => serde_json::to_vec(&value),
+
+    let body: Result<Vec<u8>, String> = match content_type {
+        CONTENT_TYPE_CONCORDANCE_CBOR => {
+            serde_cbor::to_vec(&value).map_err(|e| e.to_string())
+        }
+        _ => serde_json::to_vec(&value).map_err(|e| e.to_string()),
     };
+
     match body {
         Ok(body) => {
             let mut res = Response::new(body.into());
             res.headers_mut().insert(
                 header::CONTENT_TYPE,
-                HeaderValue::from_str(content_type).unwrap_or_else(|_| HeaderValue::from_static(CONTENT_TYPE_JSON)),
+                HeaderValue::from_str(content_type)
+                    .unwrap_or_else(|_| HeaderValue::from_static(CONTENT_TYPE_JSON)),
             );
             res
         }
-        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            e,
+        )
+            .into_response(),
     }
 }
 
