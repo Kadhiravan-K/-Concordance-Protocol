@@ -262,7 +262,7 @@ mod tests {
         let body = resp.into_body();
         let bytes = to_bytes(body).await.unwrap();
         assert_eq!(bytes, serde_cbor::to_vec(&"hello").unwrap());
-    }
+    
         let mut headers = HeaderMap::new();
         headers.insert(
             header::ACCEPT,
