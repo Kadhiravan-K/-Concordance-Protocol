@@ -1,3 +1,9 @@
+> # 🚨Project Temporarily Paused 🚨
+
+## ⚠️ Project Status
+
+This project is temporarily on hold. Development is paused until further notice.
+---
 # Concordance Protocol
 
 > **A transport-independent trust interoperability protocol for heterogeneous AI agent ecosystems.**
@@ -422,7 +428,7 @@ Commercial licensing options may be available separately.
 
 # Project Status
 
-Concordance is currently under 🚨 active development 🚨.
+Concordance is currently under 🚨 ~~ active development ~~ 🚨.
 
 Protocol semantics are stabilizing while the reference implementation, adapter ecosystem, and certification framework continue to evolve.
 
